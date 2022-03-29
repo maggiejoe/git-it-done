@@ -1,9 +1,23 @@
 // Global Variables
 var issueContainerEl = document.querySelector("#issues-container");
 var limitWarmingEl = document.querySelector("#limit-warning");
+var repoNameEl = document.querySelector("#repo-name");
+
+var getRepoName = function() {
+    var queryString = document.location.search;
+    var repoName = queryString.split("=")[1];
+
+    if (repoName) {
+        // display repo name on the page
+        repoNameEl.textContent = repoName;
+        getRepoIssues(repoName);
+    } else {
+        // if no repo was given, redirect to the homepage
+        document.location.replace("./index.html");
+    }
+};
 
 var getRepoIssues = function(repo) {
-    console.log(repo);
 
     var apiUrl = "https://api.github.com/repos/" + repo + "/issues?direction=asc";
 
@@ -13,15 +27,15 @@ var getRepoIssues = function(repo) {
             response.json().then(function(data) {
                 // pass response data to dom function
                 displayIssues(data);
-                console.log(data);
 
                 // check if api has paginated issues
                 if (response.headers.get("Link")) {
-                    console.log(displayWarning(repo));
+                    displayWarning(repo);
                 }
             });
         } else {
-            alert("There was a problem with your request!");
+            // if not successful, redirect to homepage
+            document.location.replace("./index.html");
         }
     });
 };
@@ -49,7 +63,7 @@ var displayIssues = function(issues) {
         var typeEl = document.createElement("span");
 
         // check if issue is an actual issue or a pull request
-        if (issues[i.pull_request]) {
+        if (issues[i].pull_request) {
             typeEl.textContent = "(Pull Request)";
         } else {
             typeEl.textContent = "(Issue)";
@@ -60,7 +74,7 @@ var displayIssues = function(issues) {
 
         issueContainerEl.appendChild(issueEl);
     }
-}
+};
 
 var displayWarning = function(repo) {
     // add text to warning container
@@ -75,4 +89,4 @@ var displayWarning = function(repo) {
     limitWarmingEl.appendChild(linkEl);
 };
 
-getRepoIssues("facebook/react");
+getRepoName();
